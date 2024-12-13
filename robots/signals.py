@@ -2,6 +2,7 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from robots.models import Robot
 from orders.models import Order
+from robots.tasks import send_notification_email
 
 
 @receiver(pre_save, sender=Robot)
@@ -16,7 +17,19 @@ def notify_customer_on_robot_availability(sender, instance, **kwargs):
         вызывает задачу на отправку писем тем, кто заказывал такого
         робота
         """
+
+        # Коллекция заказов со статусом pending и полем robot_serial
+        # соответствующим instance.serial
         pending_orders = Order.objects.filter(status="pending",
                                               robot_serial=instance.serial)
-        print(pending_orders)
-        pass
+
+        # Ставим задачу отправки письма всем ожидающим
+        for order in pending_orders:
+                send_notification_email(
+                        customer_email=order.customer.email,
+                        robot_serial=instance.serial
+                )
+
+                # Обновляем статус заказа
+                order.status = "in_stock"
+                order.save()
