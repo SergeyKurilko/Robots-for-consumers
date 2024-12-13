@@ -8,8 +8,6 @@ from robots.models import Robot
 def check_robot_availability(sender, instance, **kwargs):
     robot_serial = instance.robot_serial
     if not Robot.objects.filter(serial=robot_serial).exists():
-        # status = 'pending'
-        instance.status = '1'
+        instance.status = 'pending'
     else:
-        # status = 'completed'
-        instance.status = '2'
+        instance.status = 'in_stock'
