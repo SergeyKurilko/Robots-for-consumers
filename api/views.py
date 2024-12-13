@@ -12,6 +12,7 @@ class CreateRobotView(View):
     http_method_names = ['post']
 
     def post(self, request):
+        # Проверка тела запроса на корректность
         try:
             json_data = json.loads(request.body)
         except json.JSONDecodeError:
