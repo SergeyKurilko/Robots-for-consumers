@@ -12,7 +12,13 @@ class CreateRobotView(View):
     http_method_names = ['post']
 
     def post(self, request):
-        json_data = json.loads(request.body)
+        try:
+            json_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'error': 'Invalid JSON'
+            },
+                status=400)
 
         model = json_data.get("model")
         version = json_data.get("version")
