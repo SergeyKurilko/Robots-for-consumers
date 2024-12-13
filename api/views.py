@@ -12,7 +12,14 @@ class CreateRobotView(View):
     http_method_names = ['post']
 
     def post(self, request):
-        json_data = json.loads(request.body)
+        # Проверка тела запроса на корректность
+        try:
+            json_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'error': 'Invalid JSON'
+            },
+                status=400)
 
         model = json_data.get("model")
         version = json_data.get("version")
@@ -25,13 +32,20 @@ class CreateRobotView(View):
                                 status=400)
 
         # Валидация данных
-        validators.model_length_validator(model)
-        validators.version_length_validator(version)
+        if not validators.model_length_validator(model):
+            return JsonResponse({
+                'error': 'Model field length must be 2 characters.',
+            }, status=400)
+
+        if not validators.version_length_validator(version):
+            return JsonResponse({
+                'error': 'Version field length must be 2 characters.',
+            }, status=400)
+
         if not validators.created_datetime_validator(created):
             return JsonResponse({
                 'error': 'Invalid datetime format.'
             }, status=400)
-
 
         robot = Robot.objects.create(
             model=model,
